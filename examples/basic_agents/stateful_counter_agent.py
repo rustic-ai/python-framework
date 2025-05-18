@@ -1,158 +1,248 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Stateful Counter Agent Example
+Example: Stateful Counter Agent
 
-This example demonstrates how to create an agent that maintains state across messages
-using RusticAI's state management capabilities.
-
-Run this example with:
-    python examples/basic_agents/stateful_counter_agent.py
+This example demonstrates how to create an agent that maintains state across messages.
 """
 
-import asyncio
+from rustic_ai.core.guild.builders import GuildBuilder, AgentBuilder
+from rustic_ai.core.agents.base import BaseAgent
+from rustic_ai.ui_protocol.types import TextFormat
 from pydantic import BaseModel
-
-from rustic_ai.core.guild import Agent, agent
-from rustic_ai.core.guild.builders import AgentBuilder, GuildBuilder
-from rustic_ai.core.guild.dsl import AgentSpec, BaseAgentProps, GuildTopics
-from rustic_ai.core.agents.testutils.probe_agent import ProbeAgent
-from rustic_ai.core.state.models import StateOwner, StateUpdateFormat, StateUpdateRequest
+from typing import Dict, List, Optional
 
 
-class CounterAgentProps(BaseAgentProps):
-    """Properties for the CounterAgent."""
-    initial_count: int = 0
-    increment_by: int = 1
-
-
-class IncrementRequest(BaseModel):
-    """Request to increment the counter."""
-    increment_by: int = 1
-    get_current: bool = True
+# Define message models
+class CounterRequest(BaseModel):
+    """Request to manipulate a counter."""
+    action: str  # "increment", "decrement", "reset", or "get"
+    counter_name: str = "default"
+    amount: int = 1
 
 
 class CounterResponse(BaseModel):
-    """Response with the current counter value."""
-    count: int
-    times_incremented: int
+    """Response with counter information."""
+    counter_name: str
+    value: int
+    previous_value: Optional[int] = None
+    action: str
 
 
-class CounterAgent(Agent[CounterAgentProps]):
-    """
-    An agent that maintains a counter in its state.
+# Define a stateful agent
+class CounterAgent(BaseAgent):
+    """An agent that maintains counters in its state."""
     
-    This agent demonstrates:
-    1. Using a custom properties class
-    2. Reading properties from the agent spec
-    3. Maintaining state using StateUpdateRequest
-    4. Responding with the current state
-    """
-
-    def __init__(self, agent_spec: AgentSpec[CounterAgentProps]):
-        super().__init__(agent_spec)
-        # Initialize member variables from props
-        self.increment_by = agent_spec.props.increment_by
-        self.times_incremented = 0
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         
-        # Initialize state - note we don't directly modify self._state
-        # Instead, we'll use the appropriate state update mechanism
-        print(f"CounterAgent initialized with ID: {self.id}")
-        print(f"Initial increment_by: {self.increment_by}")
-
-    @agent.processor(clz=IncrementRequest)
-    def increment_counter(self, ctx: agent.ProcessContext[IncrementRequest]):
-        """
-        Increment the counter and optionally return the current value.
-        Demonstrates state management by updating the agent's state.
-        """
-        # Get the increment value from the request or use the default
-        increment_by = ctx.payload.increment_by if ctx.payload.increment_by else self.increment_by
-        get_current = ctx.payload.get_current
+        # Initialize agent state
+        self.counters: Dict[str, int] = {}
+        print(f"CounterAgent initialized: {self.id}")
+    
+    def get_counter(self, name: str) -> int:
+        """Get the current value of a counter, initializing it if needed."""
+        if name not in self.counters:
+            self.counters[name] = 0
+        return self.counters[name]
+    
+    def set_counter(self, name: str, value: int) -> None:
+        """Set a counter to a specific value."""
+        self.counters[name] = value
+    
+    def increment_counter(self, name: str, amount: int = 1) -> int:
+        """Increment a counter by the specified amount."""
+        current = self.get_counter(name)
+        self.counters[name] = current + amount
+        return current
+    
+    def reset_counter(self, name: str) -> int:
+        """Reset a counter to zero."""
+        current = self.get_counter(name)
+        self.counters[name] = 0
+        return current
+    
+    async def on_message(self, topic: str, message) -> None:
+        """Handle incoming messages."""
+        if isinstance(message, TextFormat):
+            await self.handle_text_command(message.text if message.text else "")
+        elif isinstance(message, CounterRequest):
+            await self.handle_counter_request(message)
+    
+    async def handle_text_command(self, text: str) -> None:
+        """Parse and handle text commands."""
+        parts = text.strip().split()
         
-        # Get current count from state or use 0 if not present
-        current_count = self._state.get("count", 0)
+        if not parts:
+            await self.client.publish("user_message_broadcast", TextFormat(
+                text="Available commands: INCREMENT [name] [amount], DECREMENT [name] [amount], RESET [name], GET [name], LIST"
+            ))
+            return
         
-        # Calculate new count
-        new_count = current_count + increment_by
-        self.times_incremented += 1
+        command = parts[0].upper()
         
-        print(f"[{self.name}] Incrementing counter by {increment_by} to {new_count}")
-        print(f"[{self.name}] Times incremented: {self.times_incremented}")
+        if command == "INCREMENT":
+            name = parts[1] if len(parts) > 1 else "default"
+            amount = int(parts[2]) if len(parts) > 2 else 1
+            
+            prev_value = self.increment_counter(name, amount)
+            current = self.get_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=current,
+                previous_value=prev_value,
+                action="increment"
+            ))
         
-        # Update state using StateUpdateRequest
-        self.update_state(
-            ctx=ctx,
-            update_format=StateUpdateFormat.MERGE_DICT,
-            update={
-                "count": new_count,
-                "times_incremented": self.times_incremented
-            }
-        )
+        elif command == "DECREMENT":
+            name = parts[1] if len(parts) > 1 else "default"
+            amount = int(parts[2]) if len(parts) > 2 else 1
+            
+            prev_value = self.increment_counter(name, -amount)
+            current = self.get_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=current,
+                previous_value=prev_value,
+                action="decrement"
+            ))
         
-        # Respond with current count if requested
-        if get_current:
-            ctx.send(CounterResponse(
-                count=new_count,
-                times_incremented=self.times_incremented
+        elif command == "RESET":
+            name = parts[1] if len(parts) > 1 else "default"
+            prev_value = self.reset_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=0,
+                previous_value=prev_value,
+                action="reset"
+            ))
+        
+        elif command == "GET":
+            name = parts[1] if len(parts) > 1 else "default"
+            value = self.get_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=value,
+                action="get"
+            ))
+        
+        elif command == "LIST":
+            counter_list = [f"{name}: {value}" for name, value in self.counters.items()]
+            if not counter_list:
+                counter_list = ["No counters defined"]
+            
+            await self.client.publish("user_message_broadcast", TextFormat(
+                text="Counters:\n" + "\n".join(counter_list)
+            ))
+        
+        else:
+            await self.client.publish("user_message_broadcast", TextFormat(
+                text=f"Unknown command: {command}\nAvailable commands: INCREMENT, DECREMENT, RESET, GET, LIST"
+            ))
+    
+    async def handle_counter_request(self, request: CounterRequest) -> None:
+        """Handle structured counter requests."""
+        action = request.action.lower()
+        name = request.counter_name
+        
+        if action == "increment":
+            prev_value = self.increment_counter(name, request.amount)
+            current = self.get_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=current,
+                previous_value=prev_value,
+                action="increment"
+            ))
+        
+        elif action == "decrement":
+            prev_value = self.increment_counter(name, -request.amount)
+            current = self.get_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=current,
+                previous_value=prev_value,
+                action="decrement"
+            ))
+        
+        elif action == "reset":
+            prev_value = self.reset_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=0,
+                previous_value=prev_value,
+                action="reset"
+            ))
+        
+        elif action == "get":
+            value = self.get_counter(name)
+            
+            await self.client.publish("user_message_broadcast", CounterResponse(
+                counter_name=name,
+                value=value,
+                action="get"
+            ))
+        
+        else:
+            await self.client.publish("user_message_broadcast", TextFormat(
+                text=f"Unknown action: {action}"
             ))
 
 
-async def main():
-    # Create and launch a guild
-    guild = GuildBuilder("counter_guild", "Counter Guild", "A guild with a stateful counter agent") \
-        .launch(add_probe=True)
+def main():
+    """Main function to create and run a guild with the counter agent."""
     
-    # Get the probe agent for monitoring messages
-    probe_agent = guild.get_agent_of_type(ProbeAgent)
-    print(f"Created guild with ID: {guild.id}")
+    # Create a guild builder
+    guild_builder = GuildBuilder(guild_name="CounterGuild") \
+        .set_description("A guild with a stateful counter agent") \
+        .set_execution_engine("rustic_ai.core.guild.execution.sync.sync_exec_engine.SyncExecutionEngine") \
+        .set_messaging(
+            backend_module="rustic_ai.core.messaging.backend",
+            backend_class="InMemoryMessagingBackend",
+            backend_config={}
+        )
     
-    # Create and launch a counter agent
+    # Create the counter agent
     counter_agent_spec = AgentBuilder(CounterAgent) \
-        .set_name("Counter") \
-        .set_description("A stateful counter agent") \
-        .set_properties(CounterAgentProps(initial_count=0, increment_by=5)) \
+        .set_id("counter_agent") \
+        .set_name("Counter Agent") \
+        .set_description("Maintains counters with state") \
         .build_spec()
     
-    guild.launch_agent(counter_agent_spec)
+    # Add the agent to the guild
+    guild_builder.add_agent_spec(counter_agent_spec)
     
-    print("\nAgents in the guild:")
-    for agent_spec in guild.list_agents():
-        print(f"- {agent_spec.name} (ID: {agent_spec.id}, Type: {agent_spec.class_name})")
+    # Launch the guild
+    guild = guild_builder.launch()
     
-    # Send increment requests with the probe agent
-    print("\nSending increment requests...")
+    print(f"Guild '{guild.name}' launched with {guild.get_agent_count()} agent(s).")
+    print("Available commands:")
+    print("  INCREMENT [name] [amount] - Increment a counter")
+    print("  DECREMENT [name] [amount] - Decrement a counter")
+    print("  RESET [name] - Reset a counter to zero")
+    print("  GET [name] - Get the current value of a counter")
+    print("  LIST - List all counters and their values")
+    print("  exit - Quit the program")
     
-    # First increment
-    print("\n--- First Increment ---")
-    probe_agent.publish("default_topic", IncrementRequest())
-    await asyncio.sleep(1)  # Wait for processing
+    # Simple command loop
+    while True:
+        user_input = input("> ")
+        if user_input.lower() == "exit":
+            break
+        
+        # Send the user input to the guild
+        guild.get_agent("counter_agent").client.publish("default_topic", TextFormat(text=user_input))
     
-    # Check messages
-    messages = probe_agent.get_messages()
-    print(f"Captured {len(messages)} message(s):")
-    for msg in messages:
-        if "count" in msg.payload:
-            print(f"Count: {msg.payload['count']}, Times incremented: {msg.payload['times_incremented']}")
-    
-    # Clear messages for next round
-    probe_agent.clear_messages()
-    
-    # Second increment with custom value
-    print("\n--- Second Increment (custom value: 10) ---")
-    probe_agent.publish("default_topic", IncrementRequest(increment_by=10))
-    await asyncio.sleep(1)  # Wait for processing
-    
-    # Check messages again
-    messages = probe_agent.get_messages()
-    print(f"Captured {len(messages)} message(s):")
-    for msg in messages:
-        if "count" in msg.payload:
-            print(f"Count: {msg.payload['count']}, Times incremented: {msg.payload['times_incremented']}")
-    
-    # Shutdown the guild
+    # Shutdown the guild when done
     guild.shutdown()
-    print("\nGuild shutdown complete")
+    print("Guild shut down.")
 
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    main() 

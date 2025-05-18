@@ -1,124 +1,90 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Hello World Guild Example
+Example: Hello World Guild
 
-This example demonstrates how to create a guild with multiple agents that interact with each other.
-
-Run this example with:
-    python examples/hello_world/hello_world_guild.py
+This example demonstrates how to create a simple guild with a hello world agent.
 """
 
-import asyncio
-import time
+from rustic_ai.core.guild.builders import GuildBuilder, AgentBuilder
+from rustic_ai.agents.utils.user_proxy_agent import UserProxyAgent
+from rustic_ai.core.agents.base import BaseAgent
+from rustic_ai.ui_protocol.types import TextFormat
 from pydantic import BaseModel
 
-from rustic_ai.core.guild import Agent, agent
-from rustic_ai.core.guild.builders import AgentBuilder, GuildBuilder
-from rustic_ai.core.guild.dsl import AgentSpec, BaseAgentProps
-from rustic_ai.core.agents.testutils.probe_agent import ProbeAgent
 
-
-class GreetRequest(BaseModel):
-    """A simple model for greeting requests."""
-    name: str
-
-
-class GreetResponse(BaseModel):
-    """A model for greeting responses."""
+# Define a simple HelloWorldAgent
+class HelloResponse(BaseModel):
     greeting: str
+    recipient: str
 
 
-class HelloAgent(Agent[BaseAgentProps]):
-    """An agent that responds to greeting requests."""
+class HelloWorldAgent(BaseAgent):
+    """A simple agent that responds with a greeting."""
 
-    def __init__(self, agent_spec: AgentSpec[BaseAgentProps]):
-        super().__init__(agent_spec)
-        print(f"HelloAgent initialized with ID: {self.id}")
-
-    @agent.processor(clz=GreetRequest)
-    def greet(self, ctx: agent.ProcessContext[GreetRequest]):
-        """Process a greeting request and respond with a greeting."""
-        name = ctx.payload.name
-        print(f"[{self.name}] Received greeting request for: {name}")
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         
-        # Create and send a response
-        response = GreetResponse(greeting=f"Hello, {name}!")
-        ctx.send(response)
-        print(f"[{self.name}] Sent response: {response.greeting}")
+    async def on_message(self, topic: str, message) -> None:
+        """Handle incoming messages."""
+        if isinstance(message, TextFormat):
+            # If we receive a text message, respond with a greeting
+            response = HelloResponse(
+                greeting="Hello",
+                recipient=message.text if message.text else "World"
+            )
+            await self.client.publish("user_message_broadcast", response)
 
 
-class EchoAgent(Agent[BaseAgentProps]):
-    """An agent that echoes back any greeting responses it receives."""
-
-    def __init__(self, agent_spec: AgentSpec[BaseAgentProps]):
-        super().__init__(agent_spec)
-        print(f"EchoAgent initialized with ID: {self.id}")
-
-    @agent.processor(clz=GreetResponse)
-    def echo_greeting(self, ctx: agent.ProcessContext[GreetResponse]):
-        """Echo back a greeting response."""
-        greeting = ctx.payload.greeting
-        print(f"[{self.name}] Received greeting: {greeting}")
-        print(f"[{self.name}] Echoing back: {greeting} (Echo!)")
-        
-        # Send a new greeting request with the original message
-        ctx.send(GreetRequest(name=f"{greeting} (Echo!)"))
-
-
-async def main():
-    # Create and launch a guild
-    guild = GuildBuilder("hello_world_guild", "Hello World Guild", "A simple guild for demonstration") \
-        .launch(add_probe=True)
+def main():
+    """Main function to create and run the hello world guild."""
     
-    # Get the probe agent for monitoring messages
-    probe_agent = guild.get_agent_of_type(ProbeAgent)
-    print(f"Created guild with ID: {guild.id}")
+    # Create a guild builder
+    guild_builder = GuildBuilder(guild_name="HelloWorldGuild") \
+        .set_description("A simple hello world guild") \
+        .set_execution_engine("rustic_ai.core.guild.execution.sync.sync_exec_engine.SyncExecutionEngine") \
+        .set_messaging(
+            backend_module="rustic_ai.core.messaging.backend",
+            backend_class="InMemoryMessagingBackend",
+            backend_config={}
+        )
     
-    # Create and launch our agents
-    hello_agent_spec = AgentBuilder(HelloAgent) \
-        .set_name("Greeter") \
-        .set_description("An agent that responds to greeting requests") \
+    # Create a user proxy agent to handle user interaction
+    user_agent_spec = AgentBuilder(UserProxyAgent) \
+        .set_id("user_agent") \
+        .set_name("User Interface") \
+        .set_description("Handles user interactions") \
         .build_spec()
     
-    echo_agent_spec = AgentBuilder(EchoAgent) \
-        .set_name("Echo") \
-        .set_description("An agent that echoes back greetings") \
+    # Create our hello world agent
+    hello_agent_spec = AgentBuilder(HelloWorldAgent) \
+        .set_id("hello_agent") \
+        .set_name("Hello World Agent") \
+        .set_description("Responds with greetings") \
         .build_spec()
     
-    guild.launch_agent(hello_agent_spec)
-    guild.launch_agent(echo_agent_spec)
+    # Add the agents to the guild
+    guild_builder.add_agent_spec(user_agent_spec)
+    guild_builder.add_agent_spec(hello_agent_spec)
     
-    print("\nAgents in the guild:")
-    for agent_spec in guild.list_agents():
-        print(f"- {agent_spec.name} (ID: {agent_spec.id}, Type: {agent_spec.class_name})")
+    # Launch the guild
+    guild = guild_builder.launch()
     
-    # Send an initial greeting request using the probe agent
-    print("\nSending initial greeting request...")
-    probe_agent.publish("default_topic", GreetRequest(name="World"))
+    print(f"Guild '{guild.name}' launched with {guild.get_agent_count()} agent(s).")
+    print("Type a name to receive a greeting, or 'exit' to quit.")
     
-    # Wait for messages to be processed
-    print("\nWaiting for messages to be processed...")
+    # Simple command loop
+    while True:
+        user_input = input("> ")
+        if user_input.lower() == "exit":
+            break
+        
+        # Send the user input to the guild
+        guild.get_agent("user_agent").client.publish("default_topic", TextFormat(text=user_input))
     
-    # Sleep for 2 seconds to allow messages to be processed
-    # In a real application, you would use a more robust synchronization method
-    await asyncio.sleep(2)
-    
-    # Print all messages captured by the probe
-    messages = probe_agent.get_messages()
-    print(f"\nCaptured {len(messages)} messages:")
-    for i, msg in enumerate(messages, 1):
-        print(f"\nMessage {i}:")
-        print(f"  From: {msg.sender.name} ({msg.sender.id})")
-        print(f"  Format: {msg.format}")
-        if "greeting" in msg.payload:
-            print(f"  Payload: {msg.payload['greeting']}")
-        elif "name" in msg.payload:
-            print(f"  Payload: {msg.payload['name']}")
-
-    # Shutdown the guild
+    # Shutdown the guild when done
     guild.shutdown()
-    print("\nGuild shutdown complete")
+    print("Guild shut down.")
 
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    main() 

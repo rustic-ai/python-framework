@@ -1,98 +1,97 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Hello World Agent Example
+Example: Hello World Agent
 
-This example demonstrates a simple agent that processes greeting messages.
-
-Run this example with:
-    python examples/hello_world/hello_world_agent.py
+This example demonstrates how to create a simple agent that responds with greetings.
 """
 
+from rustic_ai.core.agents.base import BaseAgent
+from rustic_ai.ui_protocol.types import TextFormat
 from pydantic import BaseModel
 
-from rustic_ai.core.guild import Agent, agent
-from rustic_ai.core.guild.dsl import AgentSpec, BaseAgentProps
-from rustic_ai.core.messaging.core import JsonDict
-from rustic_ai.core.messaging.core.message import Message, AgentTag
-from rustic_ai.core.utils.priority import Priority
-from rustic_ai.core.utils.gemstone_id import GemstoneGenerator
 
-
-class GreetRequest(BaseModel):
-    """A simple model for greeting requests."""
-    name: str
-
-
-class GreetResponse(BaseModel):
-    """A model for greeting responses."""
+# Define a response model for our agent
+class HelloResponse(BaseModel):
     greeting: str
+    recipient: str
 
 
-class HelloWorldAgent(Agent[BaseAgentProps]):
-    """A simple agent that responds to greeting requests."""
+class HelloWorldAgent(BaseAgent):
+    """A simple agent that responds with a greeting."""
 
-    def __init__(self, agent_spec: AgentSpec):
-        super().__init__(agent_spec)
-        print(f"Hello World Agent initialized with ID: {self.id} and name: {self.name}")
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.greeting_count = 0  # Track how many greetings we've sent
+        print(f"HelloWorldAgent initialized: {self.id}")
 
-    @agent.processor(clz=GreetRequest)
-    def greet(self, ctx: agent.ProcessContext[GreetRequest]):
-        """Process a greeting request and respond with a greeting."""
-        name = ctx.payload.name
-        print(f"Received greeting request for: {name}")
-        
-        # Create and send a response
-        response = GreetResponse(greeting=f"Hello, {name}!")
-        ctx.send(response)
-        print(f"Sent response: {response.greeting}")
+    async def on_message(self, topic: str, message) -> None:
+        """Handle incoming messages."""
+        if isinstance(message, TextFormat):
+            # If we receive a text message, respond with a greeting
+            self.greeting_count += 1
+            recipient = message.text if message.text else "World"
+            
+            print(f"Received message: {message.text}")
+            print(f"Sending greeting #{self.greeting_count}")
+            
+            response = HelloResponse(
+                greeting="Hello",
+                recipient=recipient
+            )
+            await self.client.publish("user_message_broadcast", response)
 
-    @agent.processor(clz=JsonDict)
-    def greet_from_dict(self, ctx: agent.ProcessContext[JsonDict]):
-        """Handle a raw JSON greeting."""
-        raw_payload = ctx.payload
-        if "name" in raw_payload:
-            name = raw_payload["name"]
-            print(f"Received raw JSON greeting request for: {name}")
-            ctx.send_dict({"greeting": f"Hello, {name}!"})
-            print(f"Sent raw JSON response: Hello, {name}!")
+
+# Example of how to use this agent in a guild
+def usage_example():
+    """Example code showing how to use the HelloWorldAgent."""
+    from rustic_ai.core.guild.builders import GuildBuilder, AgentBuilder
+    
+    # Create a guild builder
+    guild_builder = GuildBuilder(guild_name="HelloWorldGuild") \
+        .set_description("A simple hello world guild")
+    
+    # Create our hello world agent
+    hello_agent_spec = AgentBuilder(HelloWorldAgent) \
+        .set_id("hello_agent") \
+        .set_name("Hello World Agent") \
+        .set_description("Responds with greetings") \
+        .build_spec()
+    
+    # Add the agent to the guild
+    guild_builder.add_agent_spec(hello_agent_spec)
+    
+    # Launch the guild
+    guild = guild_builder.launch()
+    
+    # Now you can send messages to the agent
+    # guild.get_agent("hello_agent").client.publish(
+    #     "default_topic", TextFormat(text="User")
+    # )
+    
+    # Shutdown the guild when done
+    # guild.shutdown()
 
 
 if __name__ == "__main__":
-    # Create a simple generator for message IDs
-    gemstone_gen = GemstoneGenerator(machine_id=1)
+    print("This file defines the HelloWorldAgent class.")
+    print("It is meant to be imported and used in a guild, not run directly.")
+    print("\nHere's how you might use it:")
+    print("""
+    from rustic_ai.core.guild.builders import GuildBuilder, AgentBuilder
+    from hello_world_agent import HelloWorldAgent
     
-    # Create the agent
-    hello_agent = HelloWorldAgent(
-        AgentSpec(
-            id="hello_agent",
-            name="Hello World Agent",
-            description="A simple agent that responds to greetings",
-            class_name=HelloWorldAgent.get_qualified_class_name(),
-        )
-    )
+    # Create a guild builder
+    guild_builder = GuildBuilder(guild_name="HelloWorldGuild")
     
-    # Create a message with a GreetRequest payload
-    message = Message(
-        id_obj=gemstone_gen.get_id(Priority.NORMAL),
-        topics=["test_topic"],
-        sender=AgentTag(id="test_sender", name="Test Sender"),
-        payload=GreetRequest(name="World").model_dump(),
-        format=GreetRequest.model_json_schema()["$id"],
-    )
+    # Create our hello world agent
+    hello_agent_spec = AgentBuilder(HelloWorldAgent) \\
+        .set_id("hello_agent") \\
+        .set_name("Hello World Agent") \\
+        .build_spec()
     
-    # Process the message
-    print("\nSending structured message...")
-    hello_agent._on_message(message)
+    # Add the agent to the guild
+    guild_builder.add_agent_spec(hello_agent_spec)
     
-    # Create a message with a raw JSON payload
-    raw_message = Message(
-        id_obj=gemstone_gen.get_id(Priority.NORMAL),
-        topics=["test_topic"],
-        sender=AgentTag(id="test_sender", name="Test Sender"),
-        payload={"name": "JSON World"},
-        format="rustic_ai.core.messaging.core.JsonDict",  # Format for raw JSON
-    )
-    
-    # Process the raw message
-    print("\nSending raw JSON message...")
-    hello_agent._on_message(raw_message) 
+    # Launch the guild
+    guild = guild_builder.launch()
+    """) 

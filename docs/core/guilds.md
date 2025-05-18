@@ -128,7 +128,7 @@ Each `RoutingRule` defines how a message, upon matching certain criteria, should
 -   **`transformer`** (Dict, optional): Defines how to transform the incoming message payload before sending it to the destination.
     -   `expression` (str): A JSONata expression or a custom transformation logic to apply to the incoming message payload.
     -   `output_format` (str): The Pydantic model type (fully qualified name) of the transformed payload (e.g., `"rustic_ai.agents.laira.research_manager.UserQuery"`).
-    Example: `{"expression": "{"query": text}", "output_format": "rustic_ai.agents.laira.research_manager.UserQuery"}`
+    Example: `{"expression": "{\"query\": text}", "output_format": "rustic_ai.agents.laira.research_manager.UserQuery"}`
 -   **`destination`** (Dict, optional): Specifies where the (transformed) message should be sent. If `null`, the message is typically sent back to the original sender or follows routing slip logic from the incoming message.
     -   `topics` (str | List[str]): The topic(s) to publish the message to (e.g., `"echo_topic"`, `"user_message_broadcast"`).
     -   `recipient_list` (List[AgentTag]): A list of specific agents to send the message to.
@@ -147,7 +147,7 @@ This rule takes a `TextFormat` message from a `UserProxyAgent`, transforms its `
     "method_name": "unwrap_and_forward_message", // From UserProxyAgent
     "message_format": "rustic_ai.ui_protocol.types.TextFormat",
     "transformer": {
-        "expression": "{"query": text}",
+        "expression": "{\"query\": text}",
         "output_format": "rustic_ai.agents.laira.research_manager.UserQuery"
     },
     "destination": {
@@ -167,9 +167,9 @@ Routing slips enable powerful patterns:
 
 Managing the lifecycle of a Guild involves defining its structure, instantiating it, launching its agents, facilitating their interactions, and eventually shutting it down. RusticAI provides different mechanisms for bringing a Guild to life, suited for development versus production environments.
 
-1.  **Definition (`GuildSpec`)**: The blueprint for a Guild is its `GuildSpec`. This can be defined in a YAML/JSON file or constructed programmatically using `GuildBuilder` and `AgentBuilder`.
+1. **Definition (`GuildSpec`)**: The blueprint for a Guild is its `GuildSpec`. This can be defined in a YAML/JSON file or constructed programmatically using `GuildBuilder` and `AgentBuilder`.
 
-    ```python
+```python
     # Basic programmatic GuildSpec construction
     from rustic_ai.core.guild.builders import GuildBuilder, AgentBuilder, RouteBuilder
     from rustic_ai.core.guild.dsl import GuildSpec, AgentSpec, RoutingSlip, RoutingRule
@@ -215,9 +215,9 @@ Managing the lifecycle of a Guild involves defining its structure, instantiating
     guild_spec = guild_builder.build_spec()
     ```
 
-2.  **Instantiation and Launching Agents**:
+2. **Instantiation and Launching Agents**:
 
-    There are two main approaches to instantiate a `Guild` from a `GuildSpec` and launch its agents, provided by the `GuildBuilder`:
+There are two main approaches to instantiate a `Guild` from a `GuildSpec` and launch its agents, provided by the `GuildBuilder`:
 
     *   **`guild_builder.launch()` - For Development & Testing:**
         *   **How it works:** This method is a convenient way to quickly bring up an entire Guild and its agents in the current environment. 
@@ -253,9 +253,9 @@ Managing the lifecycle of a Guild involves defining its structure, instantiating
 
     **Important Note on `guild.launch_agent()`:** While `guild.launch_agent(agent_spec)` is the underlying method that starts an individual agent, you typically **do not call it directly** when setting up a guild from a specification. Instead, rely on `guild_builder.launch()` for development or `guild_builder.bootstrap()` for production scenarios, as these methods handle the overall setup process correctly.
 
-3.  **Interaction**: Once launched, agents within the Guild communicate via messages, with their interactions orchestrated by the Guild's defined [routes](#message-routing-routes) and [messaging system](messaging.md).
+3. **Interaction**: Once launched, agents within the Guild communicate via messages, with their interactions orchestrated by the Guild's defined [routes](#message-routing-routes) and [messaging system](messaging.md).
 
-4.  **Agent Management (Runtime)**: After initial launch, you might interact with the guild or its agents:
+4. **Agent Management (Runtime)**: After initial launch, you might interact with the guild or its agents:
     *   Via API endpoints if the Guild is managed by a service (see [Observability & Remote Management](#observability--remote-management)).
     *   Programmatically in some scenarios (less common for bootstrapped guilds directly):
         *   `guild.remove_agent(agent_id)`: Stops and removes an agent from the guild's tracking and execution engine.
@@ -263,7 +263,7 @@ Managing the lifecycle of a Guild involves defining its structure, instantiating
         *   `guild.list_agents()`: Lists all `AgentSpec`s currently registered with the guild instance.
         *   `guild.list_all_running_agents()`: Lists `AgentSpec`s of agents the execution engine reports as running for this guild.
 
-5.  **Shutdown**:
+5. **Shutdown**:
     *   For guilds started with `guild_builder.launch()`: Call `guild.shutdown()`. This will attempt to gracefully stop all agents and release resources associated with the guild and its execution engine.
     *   For guilds started with `guild_builder.bootstrap()`: Shutdown is typically managed by the environment hosting the `GuildManagerAgent` or through signals sent to it. The `GuildManagerAgent` would then handle the graceful shutdown of the agents it manages.
 

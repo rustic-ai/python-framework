@@ -11,14 +11,14 @@ nav:
       - Dependencies: core/dependencies.md
   - API: api/index.md
   - Showcase: showcase/index.md
-  - SerpAPI: serpapi/index.md
-  - Marvin: marvin/index.md
+  - SerpAPI: agents/serpapi/index.md
+  - Marvin: agents/marvin/index.md
   - LangChain: langchain/index.md
-  - Litellm: litellm/index.md
+  - Litellm: agents/litellm/index.md
   - Ray: ray/index.md
   - Chroma: chroma/index.md
-  - Playwright: playwright/index.md
-  - HuggingFace: huggingface/index.md
+  - Playwright: agents/playwright/index.md
+  - HuggingFace: agents/huggingface/index.md
   - Data Analyst: data-analyst/index.md
 theme:
   name: material
@@ -30,3 +30,9 @@ markdown_extensions:
   - codehilite
   - toc:
       permalink: true 
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+          
