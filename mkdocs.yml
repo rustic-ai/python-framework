@@ -1,0 +1,32 @@
+site_name: RusticAI Documentation
+nav:
+  - Home: index.md
+  - Core:
+      - Overview: core/index.md
+      - Architecture: core/architecture.md
+      - Agents: core/agents.md
+      - Guilds: core/guilds.md
+      - Messaging: core/messaging.md
+      - Execution: core/execution.md
+      - Dependencies: core/dependencies.md
+  - API: api/index.md
+  - Showcase: showcase/index.md
+  - SerpAPI: serpapi/index.md
+  - Marvin: marvin/index.md
+  - LangChain: langchain/index.md
+  - Litellm: litellm/index.md
+  - Ray: ray/index.md
+  - Chroma: chroma/index.md
+  - Playwright: playwright/index.md
+  - HuggingFace: huggingface/index.md
+  - Data Analyst: data-analyst/index.md
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true 
