@@ -75,8 +75,8 @@ from rustic_ai.core.guild.dsl import DependencySpec
 
 state_dep = {
     "state_manager": DependencySpec(
-        resolver_class=RedisStateManager,
-        config={"redis_url": "redis://localhost:6379/0"},
+        class_name="rustic_ai.core.state.RedisStateManager",
+        properties={"redis_url": "redis://localhost:6379/0"},
     )
 }
 

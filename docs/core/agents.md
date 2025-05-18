@@ -388,11 +388,15 @@ from rustic_ai.core.guild.dsl import BaseAgentProps, AgentSpec, DependencySpec
 
 # Example Dependency Resolvers (simplified, see dependencies.md for full structure)
 class MyDatabaseResolver: # Implements rustic_ai.core.guild.agent_ext.depends.DependencyResolver
-    def __init__(self, connection_string: str): self.conn_str = connection_string
+    def __init__(self, connection_string: str): 
+        super().__init__()
+        self.conn_str = connection_string
     def resolve(self, guild_id, agent_id=None): return f"DBConnection({self.conn_str})" # Returns actual service
 
 class MyApiClientResolver:
-    def __init__(self, api_key: str): self.api_key = api_key
+    def __init__(self, api_key: str): 
+        super().__init__()
+        self.api_key = api_key
     def resolve(self, guild_id, agent_id=None): return f"ApiClient(key={self.api_key})"
 
 class OrderRequest(BaseModel):
@@ -416,8 +420,7 @@ class OrderProcessorAgent(Agent[BaseAgentProps]):
 #   },
 #   "api_client": { 
 #       "class_name": "my_project.resolvers.MyApiClientResolver", 
-#       "properties": {"api_key": "secret_key"},
-#       "guild_level": False # This dependency is per-agent instance
+#       "properties": {"api_key": "secret_key"}
 #   }
 # }
 # Or these could be defined at the Guild level and inherited/overridden.

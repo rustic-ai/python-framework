@@ -46,7 +46,19 @@ Key fields in a `GuildSpec`:
         // ... AgentSpec definitions here ... (see Agents section below)
     ],
     "dependency_map": {
-        // ... Guild-level dependency definitions here ...
+        "database": {
+            "class_name": "my_package.resolvers.DatabaseResolver",
+            "properties": {
+                "connection_string": "postgresql://user:pass@host/db"
+            }
+        },
+        "api_client": {
+            "class_name": "my_package.resolvers.ApiClientResolver",
+            "properties": {
+                "api_key": "secret-key",
+                "base_url": "https://api.example.com"
+            }
+        }
     },
     "routes": {
         // ... RoutingSlip definition here ... (see Routes section below)

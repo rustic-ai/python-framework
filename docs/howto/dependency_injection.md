@@ -54,6 +54,7 @@ class DatabaseService:
 # Then, create a resolver for this service
 class DatabaseResolver(DependencyResolver):
     def __init__(self, connection_string: str = "sqlite:///:memory:"):
+        super().__init__()  # Important to call parent constructor
         self.connection_string = connection_string
         self._db_instance = None
     
@@ -75,19 +76,27 @@ from rustic_ai.core.guild.builders import GuildBuilder
 from rustic_ai.core.guild.dsl import DependencySpec
 
 # Create a guild with a shared database dependency
-guild = GuildBuilder("demo_guild", "Demo Guild", "A guild with shared dependencies")
+guild_builder = GuildBuilder("demo_guild", "Demo Guild", "A guild with shared dependencies")
 
-# Add the database dependency
-guild.add_dependency(
-    key="database",
-    dependency=DependencySpec(
+# Set multiple dependencies at once
+guild_builder.set_dependency_map({
+    "database": DependencySpec(
         class_name="your_package.resolvers.DatabaseResolver",
         properties={"connection_string": "sqlite:///guild_db.sqlite"}
+    )
+})
+
+# Or add a single dependency
+guild_builder.add_dependency_resolver(
+    "logger",
+    DependencySpec(
+        class_name="your_package.resolvers.LoggerResolver",
+        properties={"log_level": "INFO"}
     )
 )
 
 # Launch the guild
-guild = guild.launch()
+guild = guild_builder.launch()
 ```
 
 ### Agent-Level Dependencies
@@ -99,13 +108,12 @@ from rustic_ai.core.guild.builders import AgentBuilder
 agent_spec = AgentBuilder(MyAgent) \
     .set_name("DataAgent") \
     .set_description("Agent with database access") \
-    .add_dependency(
-        key="database",
-        dependency=DependencySpec(
+    .set_dependency_map({
+        "database": DependencySpec(
             class_name="your_package.resolvers.DatabaseResolver",
             properties={"connection_string": "sqlite:///agent_db.sqlite"}
         )
-    ) \
+    }) \
     .build_spec()
 ```
 
@@ -172,7 +180,17 @@ In RusticAI, dependencies are generally:
 2. **Cached** by the resolver
 3. **Shared** among all handlers in an agent that request the same dependency
 
-This behavior can be customized by implementing different caching strategies in your resolvers.
+This behavior can be customized by implementing different caching strategies in your resolvers:
+
+```python
+class NonCachingResolver(DependencyResolver):
+    # Disable memoization to create a new instance each time
+    memoize_resolution = False
+    
+    def resolve(self, guild_id: str, agent_id: str = None) -> SomeService:
+        # Create a new instance every time
+        return SomeService()
+```
 
 ## Testing with Dependencies
 
@@ -259,14 +277,15 @@ Dependencies can depend on other dependencies:
 ```python
 class ApiClientResolver(DependencyResolver):
     def __init__(self, api_key: str, cache_service_key: str = "cache"):
+        super().__init__()
         self.api_key = api_key
         self.cache_service_key = cache_service_key
         self._api_client = None
     
     def resolve(self, guild_id: str, agent_id: str = None) -> ApiClient:
         if self._api_client is None:
-            # Resolve the cache dependency
-            cache_service = self.get_dependency(self.cache_service_key, guild_id, agent_id)
+            # Inject another dependency using the inject method
+            cache_service = self.inject(CacheService, self.cache_service_key, guild_id, agent_id)
             self._api_client = ApiClient(self.api_key, cache_service)
         return self._api_client
 ```
@@ -328,6 +347,7 @@ class ApiService:
 # Dependency resolver
 class ApiServiceResolver(DependencyResolver):
     def __init__(self, api_key: str = "default_key", base_url: str = "https://api.example.com"):
+        super().__init__()
         self.api_key = api_key
         self.base_url = base_url
         self._api_service = None
@@ -365,7 +385,7 @@ class ApiAgent(Agent[BaseAgentProps]):
 Now that you understand dependency injection, you might want to:
 
 - Learn how to [manage state in agents](state_management.md)
-- Explore [creating custom guild specifications](guild_specifications.md)
+- Explore [creating custom guild specifications](creating_a_guild.md)
 - Understand [testing and debugging](testing_agents.md) agents with dependencies
 
 For a complete example, see the [Dependency Injection Example](../../examples/basic_agents/dependency_injection_example.py) in the examples directory. 
