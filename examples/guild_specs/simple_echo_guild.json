@@ -1,0 +1,27 @@
+{
+  "guild_id": "echo_guild",
+  "name": "Echo Guild",
+  "description": "A simple guild with an echo agent",
+  "agents": [
+    {
+      "id": "echo_agent",
+      "name": "Echo Agent",
+      "description": "An agent that echoes back messages",
+      "class_name": "rustic_ai.core.agents.testutils.echo_agent.EchoAgent",
+      "additional_topics": [],
+      "properties": {},
+      "listen_to_default_topic": true,
+      "act_only_when_tagged": false
+    }
+  ],
+  "default_topic": "default_topic",
+  "routes": [
+    {
+      "route_id": "echo_route",
+      "match_expression": "$exists(message)",
+      "to_topic": "default_topic",
+      "mark_forwarded": true,
+      "description": "Route all messages to the default topic"
+    }
+  ]
+} 

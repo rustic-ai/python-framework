@@ -1,0 +1,101 @@
+{
+  "guild_id": "multi_agent_guild",
+  "name": "Multi-Agent Guild",
+  "description": "A guild with multiple agents and custom routing",
+  "agents": [
+    {
+      "id": "greeter_agent",
+      "name": "Greeter Agent",
+      "description": "An agent that handles greeting requests",
+      "class_name": "examples.demo_projects.multi_agent_demo.GreeterAgent",
+      "additional_topics": ["greeting_requests"],
+      "properties": {
+        "default_greeting": "Welcome to the Multi-Agent Guild!"
+      },
+      "listen_to_default_topic": true,
+      "act_only_when_tagged": false
+    },
+    {
+      "id": "processor_agent",
+      "name": "Processor Agent",
+      "description": "An agent that processes data requests",
+      "class_name": "examples.demo_projects.multi_agent_demo.ProcessorAgent",
+      "additional_topics": ["processing_requests", "data_queue"],
+      "properties": {
+        "processing_delay": 0.5
+      },
+      "listen_to_default_topic": false,
+      "act_only_when_tagged": false
+    },
+    {
+      "id": "storage_agent",
+      "name": "Storage Agent",
+      "description": "An agent that handles storage requests",
+      "class_name": "examples.demo_projects.multi_agent_demo.StorageAgent",
+      "additional_topics": ["storage_requests", "data_queue"],
+      "properties": {},
+      "dependency_map": {
+        "database": {
+          "class_name": "examples.demo_projects.multi_agent_demo.DatabaseResolver",
+          "properties": {
+            "connection_string": "sqlite:///:memory:"
+          }
+        }
+      },
+      "listen_to_default_topic": false,
+      "act_only_when_tagged": false,
+      "predicates": {
+        "handle_storage_request": {
+          "expression": "message.operation in ['save', 'retrieve', 'delete']"
+        }
+      }
+    }
+  ],
+  "default_topic": "default_topic",
+  "routes": [
+    {
+      "route_id": "greeting_route",
+      "match_expression": "message.type = 'greeting'",
+      "to_topic": "greeting_requests",
+      "mark_forwarded": true,
+      "description": "Route greeting messages to the greeting_requests topic"
+    },
+    {
+      "route_id": "processing_route",
+      "match_expression": "message.type = 'processing'",
+      "to_topic": "processing_requests",
+      "mark_forwarded": true,
+      "description": "Route processing messages to the processing_requests topic"
+    },
+    {
+      "route_id": "storage_route",
+      "match_expression": "message.type = 'storage'",
+      "to_topic": "storage_requests",
+      "mark_forwarded": true,
+      "description": "Route storage messages to the storage_requests topic"
+    },
+    {
+      "route_id": "data_queue_route",
+      "match_expression": "message.type = 'data' and $exists(message.processed)",
+      "to_topic": "data_queue",
+      "mark_forwarded": true,
+      "description": "Route processed data to the data queue for storage"
+    },
+    {
+      "route_id": "error_route",
+      "match_expression": "$exists(message.error)",
+      "to_recipient": "greeter_agent",
+      "mark_forwarded": true,
+      "description": "Route all error messages to the greeter agent"
+    }
+  ],
+  "dependency_map": {
+    "logger": {
+      "class_name": "examples.demo_projects.multi_agent_demo.LoggerResolver",
+      "properties": {
+        "log_level": "INFO",
+        "log_file": "multi_agent_guild.log"
+      }
+    }
+  }
+} 
