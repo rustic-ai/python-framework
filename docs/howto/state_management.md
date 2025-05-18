@@ -304,4 +304,4 @@ Now that you understand state management, you might want to:
 - Explore [creating custom guild specifications](guild_specifications.md)
 - Understand [testing and debugging](testing_agents.md) stateful agents
 
-For a complete example, see the [Stateful Counter Agent](../../examples/basic_agents/stateful_counter_agent.py) in the examples directory. 
+For a complete example, see the **Stateful Counter Agent** - `examples/basic_agents/stateful_counter_agent.py` in the examples directory. 

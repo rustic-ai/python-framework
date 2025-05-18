@@ -388,4 +388,4 @@ Now that you understand dependency injection, you might want to:
 - Explore [creating custom guild specifications](creating_a_guild.md)
 - Understand [testing and debugging](testing_agents.md) agents with dependencies
 
-For a complete example, see the [Dependency Injection Example](../../examples/basic_agents/dependency_injection_example.py) in the examples directory. 
+For a complete example, see the **Dependency Injection Example** - `examples/basic_agents/dependency_injection_example.py` in the examples directory. 

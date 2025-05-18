@@ -340,4 +340,4 @@ Now that you've created a guild with multiple agents, you might want to:
 - Explore [dependency injection](dependency_injection.md) for more complex agent configurations
 - Understand how to [debug and test](testing_agents.md) multi-agent systems
 
-For a complete example, see the [Hello World Guild](../../examples/hello_world/hello_world_guild.py) in the examples directory. 
+For a complete example, see the **Hello World Guild** - `examples/hello_world/hello_world_guild.py` in the examples directory. 

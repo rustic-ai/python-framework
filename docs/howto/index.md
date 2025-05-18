@@ -30,7 +30,7 @@ These guides will be coming soon:
 
 ## Example Projects
 
-For complete working examples, check the [examples directory](../../examples/) which contains:
+For complete working examples, check the **examples** directory which contains:
 
 1. Simple Hello World implementations
 2. Basic agent capabilities demos
@@ -42,5 +42,5 @@ For complete working examples, check the [examples directory](../../examples/) w
 If you need assistance beyond what's covered in these guides:
 
 1. Check the [core documentation](../core/index.md) for detailed reference
-2. Look at the [example code](../../examples/) for practical implementations
+2. Look at the **example code** for practical implementations
 3. Join our community channels for direct support 

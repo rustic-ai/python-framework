@@ -268,7 +268,7 @@ There are two main approaches to instantiate a `Guild` from a `GuildSpec` and la
 3. **Interaction**: Once launched, agents within the Guild communicate via messages, with their interactions orchestrated by the Guild's defined [routes](#message-routing-routes) and [messaging system](messaging.md).
 
 4. **Agent Management (Runtime)**: After initial launch, you might interact with the guild or its agents:
-    *   Via API endpoints if the Guild is managed by a service (see [Observability & Remote Management](#observability--remote-management)).
+    *   Via API endpoints if the Guild is managed by a service.
     *   Programmatically in some scenarios (less common for bootstrapped guilds directly):
         *   `guild.remove_agent(agent_id)`: Stops and removes an agent from the guild's tracking and execution engine.
         *   `guild.get_agent(agent_id)`: Retrieves an `AgentSpec` by its ID.

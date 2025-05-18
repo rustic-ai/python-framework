@@ -171,4 +171,4 @@ Now that you've created your first agent, you might want to:
 - Understand [state management in agents](state_management.md)
 - Explore [dependency injection](dependency_injection.md)
 
-For a complete example, see the [Hello World Agent](../../examples/hello_world/hello_world_agent.py) in the examples directory. 
+For a complete example, see the **Hello World Agent** - `examples/hello_world/hello_world_agent.py` in the examples directory. 
