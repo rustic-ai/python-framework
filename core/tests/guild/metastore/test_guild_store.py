@@ -5,7 +5,7 @@ from rustic_ai.core.guild.builders import AgentBuilder, GuildBuilder
 from rustic_ai.core.guild.dsl import AgentSpec, DependencySpec
 from rustic_ai.core.guild.metastore.database import Metastore
 from rustic_ai.core.guild.metastore.guild_store import GuildStore
-from rustic_ai.core.guild.metastore.models import GuildModel
+from rustic_ai.core.guild.metastore.models import GuildModel, GuildStatus
 from rustic_ai.core.messaging.core.message import (
     AgentTag,
     FunctionalTransformer,
@@ -45,6 +45,24 @@ class TestGuildStore:
         assert gm1.id == "guild1"
         guild = store.get_guild(gm1.id)
         assert guild.id == "guild1"
+
+    def test_update_guild_status(self, engine, guild):
+        store = GuildStore(engine)
+        guild_model = store.add_guild(guild)
+        assert guild_model.status.value == "active"  
+
+        store.update_guild_status(guild.id, GuildStatus.STOPPED)
+
+        updated_guild = store.get_guild(guild.id)
+        assert updated_guild is not None
+        assert updated_guild.status.value == "stopped"
+
+        store.update_guild_status(guild.id, GuildStatus.ARCHIVED)
+        updated_guild = store.get_guild(guild.id)
+        assert updated_guild.status.value == "archived"
+
+        with pytest.raises(ValueError):
+            store.update_guild_status("nonexistent_guild", GuildStatus.ACTIVE)
 
     def test_list_guilds(self, engine, guild):
         store = GuildStore(engine)
