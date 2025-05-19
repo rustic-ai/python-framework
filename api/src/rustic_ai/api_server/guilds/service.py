@@ -5,6 +5,7 @@ from sqlalchemy import Engine
 from rustic_ai.core.guild import GuildSpec
 from rustic_ai.core.guild.builders import GuildBuilder, GuildHelper
 from rustic_ai.core.guild.metastore import GuildStore
+from rustic_ai.core.guild.metastore.models import GuildStatus
 
 
 class GuildService:
@@ -37,3 +38,31 @@ class GuildService:
         guild_spec = guild_model.to_guild_spec() if guild_model else None
 
         return guild_spec
+
+    valid_guild_statuses = [status.value for status in GuildStatus]
+
+    def update_guild_status(self, engine: Engine, guild_id: str, status: str) -> GuildSpec:
+        """
+        Updates only the status field of a guild in the database.
+
+        Args:
+            engine (Engine): The database engine
+            guild_id (str): The ID of the guild to update
+            status (str): The new status value to set. Must be one of: 'active', 'stopped', 'archived'
+
+        Returns:
+            GuildSpec: The updated guild spec
+
+        Raises:
+            ValueError: If the guild is not found or if the status is invalid
+        """
+        if status not in self.valid_guild_statuses:
+            raise ValueError(f"Invalid guild status: {status}. Must be one of: {', '.join(self.valid_guild_statuses)}")
+
+        guild_store = GuildStore(engine)
+
+        enum_status = GuildStatus(status)
+
+        guild_model = guild_store.update_guild_status(guild_id, enum_status)
+
+        return guild_model.to_guild_spec()

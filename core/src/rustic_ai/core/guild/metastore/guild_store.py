@@ -4,7 +4,7 @@ from sqlalchemy import Engine
 from sqlmodel import Session, select
 
 from ..dsl import APT, AgentSpec, GuildSpec
-from .models import AgentModel, GuildModel
+from .models import AgentModel, GuildModel, GuildStatus
 
 
 class GuildStore:
@@ -35,6 +35,34 @@ class GuildStore:
             session.add(guild_model)
             session.commit()
             session.refresh(guild_model)
+        return guild_model
+
+    def update_guild_status(self, guild_id: str, status: GuildStatus) -> Optional[GuildModel]:
+        """
+        Update a guild's status.
+
+        Args:
+            guild_id (str): The ID of the guild to update
+            status (GuildStatus): The new status value to set
+
+        Returns:
+            Optional[GuildModel]: The updated guild model, or None if the guild was not found
+
+        Raises:
+            ValueError: If the guild is not found
+        """
+        with Session(self.engine) as session:
+            guild_model = GuildModel.get_by_id(session, guild_id)
+
+            if not guild_model:
+                raise ValueError(f"Guild with ID {guild_id} not found")
+
+            guild_model.status = status
+
+            session.add(guild_model)
+            session.commit()
+            session.refresh(guild_model)
+
         return guild_model
 
     def list_guilds(self) -> Sequence[GuildModel]:
