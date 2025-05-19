@@ -204,24 +204,13 @@ You can customize message routing within your guild to create more complex inter
 # Create a guild with custom routes
 guild = GuildBuilder("demo_guild", "Demo Guild", "A demonstration guild with multiple agents")
 
+# Define a route
+route = RouteBuilder() \
+    .add_recipients(AgentTag("greeter_agent")) \
+    .build()
+
 # Add a custom route for greeting messages
-guild.add_route(
-    route_id="greeting_route",
-    match_expression="$exists(payload.name)",
-    to_recipient="greeter_agent",
-    description="Route messages with a 'name' field to the greeter agent"
-)
-
-# Add a custom route for processing requests
-guild.add_route(
-    route_id="processing_route",
-    match_expression="$exists(payload.operation)",
-    to_recipient="processor_agent",
-    description="Route messages with an 'operation' field to the processor agent"
-)
-
-# Launch the guild
-guild = guild.launch(add_probe=True)
+guild.add_route(route)
 ```
 
 ## Step 6: Using Guild Specifications
