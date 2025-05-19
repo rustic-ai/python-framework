@@ -98,7 +98,7 @@ message = Message(
     topics=["test_topic"],
     sender=AgentTag(id="test_sender", name="Test Sender"),
     payload=GreetRequest(name="World").model_dump(),
-    format=GreetRequest.model_json_schema()["$id"],
+    format=get_qualified_class_name(GreetRequest),
 )
 
 # Process the message
@@ -111,13 +111,19 @@ In a real application, you would typically launch your agent as part of a guild:
 
 ```python
 from rustic_ai.core.guild.builders import GuildBuilder
+# Create an agent spec
+greeter_spec = AgentBuilder(MyGreeterAgent) \
+    .set_name("MyGreeter") \
+    .set_description("A friendly greeter agent.") \
+    .build_spec()
+
 
 # Create and launch a guild
 guild = GuildBuilder("greeting_guild", "Greeting Guild", "A guild with a greeter agent") \
+    .add_agent_spec(greeter_spec)
     .launch()
 
-# Launch the agent in the guild
-guild.launch_agent(greeter_spec)
+...
 
 # Later, you can shut down the guild
 guild.shutdown()

@@ -78,6 +78,14 @@ Each agent can have its own set of configurable properties. These are defined in
 from rustic_ai.core.guild import Agent, agent  # agent provides the @agent.processor decorator
 from rustic_ai.core.guild.dsl import BaseAgentProps, AgentSpec
 
+# 1. Define messages models
+class GreetRequest(BaseModel):
+    name: Optional[str]
+
+class GreetResponse(BaseModel):
+    greeting: str
+    count: int
+
 # 1. Define Properties Model (Optional but Recommended)
 class MyGreeterAgentProps(BaseAgentProps):
     greeting_prefix: str = "Hello"
@@ -92,16 +100,16 @@ class GreeterAgent(Agent[MyGreeterAgentProps]): # Generic type specifies the pro
         self.default_name = self.get_spec().props.default_name
         self.greet_count = 0
 
-    @agent.processor(str) # Handles raw string payloads
-    def handle_name(self, ctx: agent.ProcessContext[str]):
-        name_to_greet = ctx.payload if ctx.payload else self.default_name
+    @agent.processor(clz=GreetRequest) # Handles raw string payloads
+    def handle_name(self, ctx: agent.ProcessContext[GreetRequest]):
+        name_to_greet = ctx.payload.name if ctx.payload.name else self.default_name
         response = f"{self.greeting_prefix}, {name_to_greet}!"
         self.greet_count += 1
         
         # Update agent's own state (illustrative, actual state updates are more structured)
         # self._state["greet_count"] = self.greet_count 
         
-        ctx.send_dict({"greeting": response, "count": self.greet_count})
+        ctx.send_dict(GreetResponse(greeting = response, count=count))
 
 # To use this agent, you'd create an AgentSpec for it, often via AgentBuilder.
 # from rustic_ai.core.guild.builders import AgentBuilder

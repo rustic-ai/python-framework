@@ -1,51 +1,45 @@
-# Contributing to RusticAI
+# Contributing
 
-Thank you for your interest in contributing to RusticAI! This document provides guidelines and instructions for contributing to the project.
+Contributions are welcome, and they are greatly appreciated! Every little bit
+helps, and credit will always be given.
 
-## Getting Started
+You can contribute in many ways:
 
-1. Fork the repository on GitHub
-2. Clone your fork to your local machine
-3. Set up a development environment following the instructions in the README
+## Types of Contributions
 
-## Development Guidelines
+### Report Bugs
 
-### Code Style
+Report bugs at <https://github.com/rustic-ai/python-framework/issues>.
 
-- Follow the established code style in the project
-- Use meaningful variable and function names
-- Include docstrings for all functions, classes, and modules
-- Add type hints where applicable
+If you are reporting a bug, please include:
 
-### Making Changes
+* Your operating system name and version.
+* Any details about your local setup that might be helpful in troubleshooting.
+* Detailed steps to reproduce the bug.
 
-1. Create a new branch for your changes: `git checkout -b feature/your-feature-name`
-2. Make your changes with appropriate tests
-3. Ensure all tests pass: `cargo test` or `pytest`
-4. Commit your changes with clear, descriptive commit messages
-5. Push your branch to your fork
-6. Submit a pull request to the main repository
+### Fix Bugs
 
-### Pull Request Process
+Look through the GitHub issues for bugs. Anything tagged with "bug" and "help
+wanted" is open to whoever wants to implement it.
 
-1. Update the documentation to reflect any changes
-2. Include a clear description of the changes in your PR
-3. Link any related issues using GitHub's issue linking syntax
-4. Wait for review - maintainers will review your PR as soon as possible
+### Implement Features
 
-## Contributing Examples to the Showcase
+Look through the GitHub issues for features. Anything tagged with "enhancement"
+and "help wanted" is open to whoever wants to implement it.
 
-To contribute an example to the showcase:
+### Write Documentation
 
-1. Create a new folder in the `examples/` directory with a descriptive name
-2. Include all necessary code and configuration files
-3. Add a README.md with:
-   - Clear explanation of what the example demonstrates
-   - Setup and running instructions
-   - Expected outputs or behavior
-4. Add any necessary documentation to the docs site
-5. Submit a PR following the pull request process above
+Rustic AI could always use more documentation, whether as part of the
+official Rustic AI docs, in docstrings, or even on the web in blog posts,
+articles, and such.
 
-## Code of Conduct
+### Submit Feedback
 
-We expect all contributors to follow our Code of Conduct, which promotes a respectful and inclusive community for everyone. 
+The best way to send feedback is to file an issue at <https://github.com/rustic-ai/python-framework/issues>.
+
+If you are proposing a feature:
+
+* Explain in detail how it would work.
+* Keep the scope as narrow as possible to make it easier to implement.
+* Remember that this is a volunteer-driven project and that contributions
+  are welcome :)

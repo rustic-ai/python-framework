@@ -123,3 +123,5 @@ speech.wav
 
 uvicorn_output.txt
 api/scripts/zipkin/data-tmp/traces.json
+
+old-docs/

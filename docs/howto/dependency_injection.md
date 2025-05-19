@@ -219,7 +219,7 @@ def test_database_agent():
     # Configure mock dependencies
     mock_dependencies = {
         "database": DependencySpec(
-            class_name="__main__.MockDatabaseResolver",
+            class_name="your_test_module.MockDatabaseResolver",
             properties={}
         )
     }
