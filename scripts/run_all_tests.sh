@@ -5,7 +5,7 @@ set -eu # 'e' for exit on error, 'u' for unset variables
 
 # --- Define Core Paths ---
 # Absolute path to the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 # Project root directory (assuming it's the parent of the script's directory)
 PROJECT_ROOT="$( cd "${SCRIPT_DIR}/.." && pwd )"
 
