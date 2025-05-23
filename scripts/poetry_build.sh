@@ -15,7 +15,7 @@ DIST_DIR="${PROJECT_ROOT}/dist"
 
 mkdir -p "$DIST_DIR"
 
-. ${SCRIPT_DIR}/modules.sh
+. "${SCRIPT_DIR}/modules.sh"
 
 # Use IFS and set to simulate an array in sh
 IFS=' '

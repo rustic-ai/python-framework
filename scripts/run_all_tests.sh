@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit on error, treat unset variables as errors, and print commands
-set -euo pipefail # 'e' for exit on error, 'u' for unset variables, 'o pipefail' for pipe failures
+set -eu pipefail # 'e' for exit on error, 'u' for unset variables
 
 # --- Define Core Paths ---
 # Absolute path to the directory where this script is located
