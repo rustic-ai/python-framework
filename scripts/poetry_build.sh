@@ -5,13 +5,17 @@ set -x
 set -u
 set -e
 
-DIR="$( cd "$( dirname "$0" )" && pwd )"
-cd "${DIR}/.." || exit
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+PROJECT_ROOT="$( cd "${SCRIPT_DIR}/.." && pwd )"
 
-mkdir -p dist
+echo "Building all modules in $PROJECT_ROOT"
 
 
-. ${DIR}/modules.sh
+DIST_DIR="${PROJECT_ROOT}/dist"
+
+mkdir -p "$DIST_DIR"
+
+. ${SCRIPT_DIR}/modules.sh
 
 # Use IFS and set to simulate an array in sh
 IFS=' '
@@ -27,12 +31,13 @@ for module in "$@"; do
   fi
 
   echo "Processing module: $module"
-  cd "${DIR}/../$module" || exit
+  pushd "${PROJECT_ROOT}/$module" || exit
 
   poetry install --without dev
   # Build package
   poetry build
 
-  cp ./dist/*.whl ${DIR}/../dist/
-  cp ./dist/*.tar.gz ${DIR}/../dist/
+  cp ./dist/*.whl ${DIST_DIR}/
+  cp ./dist/*.tar.gz ${DIST_DIR}/
+  popd || exit
 done
