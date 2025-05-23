@@ -1,0 +1,93 @@
+site_name: RusticAI Documentation
+nav:
+  - Home: index.md
+  - Light Paper: paper.md
+  - How-To Guides:
+      - Overview: howto/index.md
+      - Creating Your First Agent: howto/creating_your_first_agent.md
+      - Creating a Guild: howto/creating_a_guild.md
+      - Guild Specifications: howto/guild_specifications.md
+      - Dependency Injection: howto/dependency_injection.md
+      - State Management: howto/state_management.md
+      - Testing Agents: howto/testing_agents.md
+      - Writing Effective Agent Tests: howto/writing_effective_agent_tests.md
+  - Core:
+      - Overview: core/index.md
+      - Architecture: core/architecture.md
+      - Agents: core/agents.md
+      - Guilds: core/guilds.md
+      - Messaging: core/messaging.md
+      - Execution: core/execution.md
+      - Dependencies: core/dependencies.md
+      - State Management: core/state_management.md
+  - Agents:
+      - Overview: agents/index.md
+      - Core:
+          - Overview: agents/core/index.md
+          - Guild Manager Agent: agents/core/guild_manager_agent.md
+          - User Proxy Agent: agents/core/user_proxy_agent.md
+          - Vector Agent: agents/core/vector_agent.md
+          - Simple LLM Agent: agents/core/simple_llm_agent.md
+          - Probe Agent: agents/core/probe_agent.md
+      - LiteLLM:
+          - Overview: agents/litellm/index.md
+          - LiteLLM Agent: agents/litellm/litellm_agent.md
+      - HuggingFace:
+          - Overview: agents/huggingface/index.md
+          - LLM Phi Agent: agents/huggingface/llm_phi_agent.md
+          - Squad Agent: agents/huggingface/squad_agent.md
+          - Image2Image Agent: agents/huggingface/image2image_agent.md
+          - Runwayml Stable Diffusion Agent: agents/huggingface/runwayml_stable_diffusion_agent.md
+          - SpeechT5 TTS Agent: agents/huggingface/speecht5_tts_agent.md
+      - Playwright:
+          - Overview: agents/playwright/index.md
+          - Playwright Scraper Agent: agents/playwright/playwright_scraper_agent.md
+      - SerpAPI:
+          - Overview: agents/serpapi/index.md
+          - SERP Agent: agents/serpapi/serp_agent.md
+      - Marvin:
+          - Overview: agents/marvin/index.md
+          - Marvin Agent: agents/marvin/marvin_agent.md
+  - Dependencies:
+      - Overview: dependencies/index.md
+      - Core:
+          - Overview: dependencies/core/index.md
+          - Environment Secret Provider: dependencies/core/env_secret_provider.md
+          - File System Resolver: dependencies/core/filesystem.md
+          - In-Memory KV Store: dependencies/core/in_memory_kvstore.md
+          - In-Process Interpreter: dependencies/core/in_process_interpreter.md
+          - Python Exec Executor: dependencies/core/python_exec_executor.md
+      - Redis:
+          - Overview: dependencies/redis/index.md
+          - Redis KV Store: dependencies/redis/redis_kvstore.md
+      - LiteLLM:
+          - Overview: dependencies/litellm/index.md
+          - LiteLLM Resolver: dependencies/litellm/litellm_resolver.md
+      - Chroma:
+          - Overview: dependencies/chroma/index.md
+          - Chroma Resolver: dependencies/chroma/chroma_resolver.md
+      - LangChain:
+          - Overview: dependencies/langchain/index.md
+          - Character Splitter: dependencies/langchain/character_splitter.md
+          - OpenAI Embeddings: dependencies/langchain/openai_embeddings.md
+          - Recursive Splitter: dependencies/langchain/recursive_splitter.md
+  - Ray: ray/index.md
+  - Showcase: showcase/index.md
+  - API: api/index.md
+  - Contributing: contributing.md
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true 
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+          

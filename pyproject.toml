@@ -55,6 +55,11 @@ flaky = "^3.8.1"
 rusticai-testing = {path = "./testing", develop = true}
 
 
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.6.1"
+mkdocs-material = "^9.6.14"
+
 [tool.poetry.extras]
 google-cloud = ["gcsfs"]
 
