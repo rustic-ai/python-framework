@@ -1,5 +1,11 @@
 {
   "module_name": "custom_module",
   "description": "module boilerplate",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "author_name": "Dragonscale Industries Inc.",
+  "author_email": "dev@dragonscale.ai",
+  "homepage": "https://www.rustic.ai/",
+  "repository": "https://github.com/dragonscale-ai/rustic-ai",
+  "rusticai_location": "..",
+  "package_name": "rustic_ai"
 }
