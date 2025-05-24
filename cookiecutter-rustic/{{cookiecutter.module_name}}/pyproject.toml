@@ -6,19 +6,19 @@ build-backend = "poetry.core.masonry.api"
 name = "rusticai-{{ cookiecutter.module_name }}"
 version = "{{ cookiecutter.version }}"
 description = "{{ cookiecutter.description }}"
-authors = ["Dragonscale Industries Inc. <dev@dragonscale.ai>"]
+authors = ["{{ cookiecutter.author_name }} <{{ cookiecutter.author_email }}>"]
 license = "Apache-2.0"
 readme = "README.md"
-homepage = "https://www.rustic.ai/"
-repository = "https://github.com/rustic-ai/rustic-ai"
-packages = [{ include = "rustic_ai", from = "src" }]
+homepage = "{{ cookiecutter.homepage }}"
+repository = "{{ cookiecutter.repository }}"
+packages = [{ include = "{{ cookiecutter.package_name }}", from = "src" }]
 
 [tool.poetry.urls]
 "Rustic AI Core" = "https://pypi.org/project/rusticai-core/"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
-rusticai-core = { path = "../core", develop = true }
+rusticai-core = { path = "{{ cookiecutter.rusticai_location }}/core", develop = true }
 
 [tool.poetry-monorepo.deps]
 
@@ -33,6 +33,9 @@ flake8 = "^7.1.2"
 tox = "^4.24.1"
 isort = "^6.0.0"
 mypy = "^1.15.0"
+flaky = "^3.8.1"
+pytest-asyncio = "^0.26.0"
+rusticai-testing = {path = "{{ cookiecutter.rusticai_location }}/testing", develop = true}
 
 [tool.poetry.extras]
 test = ["pytest"]
